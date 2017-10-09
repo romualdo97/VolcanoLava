@@ -18,6 +18,15 @@ void ofApp::setup()
 	}
 #endif // TARGET_OPENGLES
 
+	float planeScale = 0.75;
+	int planeWidth = ofGetWidth() * planeScale;
+	int planeHeight = ofGetHeight() * planeScale;
+	int planeGridSize = 20;
+	int planeColums = planeWidth / planeGridSize;
+	int planeRows = planeHeight / planeGridSize;
+
+	plane.set(planeWidth, planeHeight, planeColums, planeRows, ofPrimitiveMode::OF_PRIMITIVE_TRIANGLE_STRIP);
+
 }
 
 //--------------------------------------------------------------
@@ -33,18 +42,15 @@ void ofApp::draw()
 
 	shader.begin();
 
-	shader.setUniform2f("iResolution", ofVec2f(1024, 768));
-	shader.setUniform1f("iTime", ofGetElapsedTimef());
-	shader.setUniform2f("iMouse", ofVec2f(ofGetMouseX(), ofGetMouseY()));
-	// iTemperature 1 for harm 0 for cold
-#ifdef IS_FLASHLIGHT
-	shader.setUniform1f("iTemperature", ofMap(photoValue, 0, 1023, 0, 1));
-#else
-	shader.setUniform1f("iTemperature", 1);
-#endif // IS_FLASHLIGHT
-	
+	// center plane in screen
+	ofTranslate(ofGetWidth()/2, ofGetHeight()/2);
 
-	ofRect(0, 0, ofGetWidth(), ofGetHeight());
+	float percentY = mouseY / (float)ofGetHeight();
+	float rotation = ofMap(percentY, 0, 1, -60, 60, true) + 60;
+	ofRotate(rotation, 1, 0, 0);
+
+	shader.setUniform1f("time", ofGetElapsedTimef());
+	plane.drawWireframe();
 
 	shader.end();
 }

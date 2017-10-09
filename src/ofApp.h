@@ -23,5 +23,6 @@ class ofApp : public ofBaseApp{
 	
 	private:
 		ofShader shader;
+		ofPlanePrimitive plane;
 		
 };
