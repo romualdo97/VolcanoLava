@@ -25,8 +25,11 @@ void ofApp::setup()
 	int planeColums = planeWidth / planeGridSize;
 	int planeRows = planeHeight / planeGridSize;
 
-	plane.set(planeWidth, planeHeight, planeColums, planeRows, ofPrimitiveMode::OF_PRIMITIVE_TRIANGLE_STRIP);
+	plane.set(planeWidth, planeHeight, planeColums, planeRows, ofPrimitiveMode::OF_PRIMITIVE_TRIANGLE_STRIP); // plane
+	plane.mapTexCoords(0, 0, planeWidth, planeHeight);
+	uvsphere.setRadius(100); // uv sphere
 
+	texture.loadImage("fire1.jpg");
 }
 
 //--------------------------------------------------------------
@@ -38,21 +41,45 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw()
 {
-	ofSetColor(255);
+	// bind our texture. in our shader this will now be tex0 by default
+	// so we can just go ahead and access it there.
+	texture.getTextureReference().bind();
 
+	// start our shader, in our OpenGL3 shader this will automagically set
+	// up a lot of matrices that we want for figuring out the texture matrix
+	// and the modelView matrix
 	shader.begin();
 
-	// center plane in screen
-	ofTranslate(ofGetWidth()/2, ofGetHeight()/2);
+	// get mouse position relative to center of screen
+	float mousePosition = ofMap(mouseX, 0, ofGetWidth(), 1.0, -1.0, true);
+#ifndef TARGET_OPENGLES
+	// when texture coordinates are normalised, they are always between 0 and 1.
+	// in GL2 and GL3 the texture coordinates are not normalised,
+	// so we have to multiply the normalised mouse position by the plane width.
+	mousePosition *= plane.getWidth();
+#endif
 
+	shader.setUniform1f("mouseX", mousePosition);
+	//shader.setUniform1f("time", ofGetElapsedTimef());
+
+
+
+	/*
 	float percentY = mouseY / (float)ofGetHeight();
 	float rotation = ofMap(percentY, 0, 1, -60, 60, true) + 60;
-	ofRotate(rotation, 1, 0, 0);
+	ofRotate(rotation, 1, 0, 0);*/
 
-	shader.setUniform1f("time", ofGetElapsedTimef());
-	plane.drawWireframe();
+	ofPushMatrix();
+	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2); // center plane in screen
+	plane.draw();
+	plane.drawAxes(100);
+	ofPopMatrix();
+
+	//uvsphere.drawWireframe();
 
 	shader.end();
+
+	texture.getTextureReference().unbind();
 }
 
 //--------------------------------------------------------------

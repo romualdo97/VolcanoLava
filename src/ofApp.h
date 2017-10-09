@@ -24,5 +24,7 @@ class ofApp : public ofBaseApp{
 	private:
 		ofShader shader;
 		ofPlanePrimitive plane;
+		ofSpherePrimitive uvsphere;
+		ofImage texture;
 		
 };
