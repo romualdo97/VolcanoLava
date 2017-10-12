@@ -88,7 +88,7 @@ float pnoise(vec3 P, vec3 rep)
 // HERE START MY CODE!!
 
 // CONSTANTS
-#define USE_NOISE
+//#define USE_NOISE
 
 // UNIFORMS
 // these are for the programmable pipeline system and are passed in
@@ -96,6 +96,11 @@ float pnoise(vec3 P, vec3 rep)
 uniform mat4 modelViewProjectionMatrix;
 uniform float mouseX;
 uniform float time;
+// wave 1
+float uAmplitude = 3.0;
+float uSpeed = 0.8;
+vec2 uDirection = vec2(-1.0, 0.0);
+float uFreq = 1.0 / 3.0;
 
 // VERTEX ATTRIBUTES
 in vec4 position;
@@ -104,9 +109,11 @@ in vec2 texcoord;
 
 // VARYING
 // this is something we're creating for this shader
-out vec2 texCoordVarying;
-out float noiseVarying;
+out vec2 vTexCoord;
+out float vNoise;
+out vec3 vNormal;
 
+// noise perturbation approach
 float turbulence( vec3 p ) 
 {
 	float w = 100.0;
@@ -119,57 +126,56 @@ float turbulence( vec3 p )
 	return t;
 }
 
+// Effective Water Simulation from Physical Models by Marck Finch and Cyan World approach
+// https://developer.nvidia.com/gpugems/GPUGems/gpugems_ch01.html
+float wave(vec2 direction, float amplitude, float speed, float w)
+{
+    // Equation 1:
+    return amplitude * sin((dot(direction, position.xy) * w) + time * speed);
+}
+
+float dWdx(vec2 direction, float amplitude, float speed, float w)
+{
+    // Equation 4b:
+    // Partial derivative in the 'x' direction of P(x, y, H(x, y, t)) is binormal vector
+    return amplitude * direction.x * w * cos((dot(direction, position.xy) * w) + time * speed);
+}
+
+float dWdy(vec2 direction, float amplitude, float speed, float w)
+{
+    // Equation 5b:
+    // Partial derivative in the 'y' direction of P(x, y, H(x, y, t)) is tangent vector
+    return amplitude * direction.y * w * cos((dot(direction, position.xy) * w) + time * speed);
+}
+
 void main()
 {
     // pass the texture coordinates to fragment shader
-    texCoordVarying = texcoord;
+    vTexCoord = vec2( texcoord.x + uDirection.x * time * 4.5, texcoord.y);
 
     //noiseVarying = 10.0 *  -.10 * turbulence( .5 * normal + time * .1 ); // <= use for spheres
-	noiseVarying = 10.0 *  -.10 * turbulence( vec3(.5 * texcoord.xy + time*.04, 0.0) ); // <= use for planes
+	vNoise = 10.0 *  -.10 * turbulence( vec3(.5 * texcoord.xy + time*.04, 0.0) ); // <= use for planes
 
     // displacement
+    float displacement = 0.0;
 #ifdef USE_NOISE
     // get a 3d noise using the position, low frequency
     float b = 5.0 * pnoise( 0.05 * position.xyz, vec3( 100.0 ) );
     // compose both noises
-    float displacement = - 10. * noiseVarying + b;
+    displacement = (- 10. * vNoise + b) * 1.5;
 #else
-    float displacementHeight = 10.0;
-    float displacement = sin(time + (position.x/100.0)) * displacementHeight;
+    float W1 = wave(uDirection, uAmplitude, uSpeed, uFreq);
+    float H = W1;
+    float dHdx = dWdx(uDirection, uAmplitude, uSpeed, uFreq);
+    float dHdy = dWdy(uDirection, uAmplitude, uSpeed, uFreq);
+    vec3 N_x_y = normalize(vec3(-dHdx, -dHdy, 1)); // N(x, y); surface normal at any given point
+    vNormal = N_x_y;
+    displacement = H;
 #endif
 
 
-    vec3 nPos = position.xyz + normal * displacement * 1.5;
+    vec3 nPos = position.xyz + normal * displacement;
 
     // send the vertices to the fragment shader
 	gl_Position = modelViewProjectionMatrix * vec4(nPos, 1.0);
 }
-
-/*#version 150
-
-// these are for the programmable pipeline system
-uniform mat4 modelViewProjectionMatrix;
-
-in vec4 position;
-in vec3 normal;
-in vec2 texcoord;
-
-out vec2 uv_tex0;
-
-// the time value is passed into the shader by the OF app.
-uniform float time;
-
-
-void main()
-{
-    // the sine wave travels along the x-axis (across the screen),
-    // so we use the x coordinate of each vertex for the calculation,
-    // but we displace all the vertex along the y axis (up the screen)/
-    float displacementHeight = 100.0;
-    float displacement = sin(time + (position.x / 100.0)) * displacementHeight;
-
-    uv_tex0 = texcoord;
-	
-    vec3 nPos = position.xyz + normal * displacement;
-	gl_Position = modelViewProjectionMatrix * vec4(nPos, 1.0);
-}*/

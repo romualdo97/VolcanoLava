@@ -5,12 +5,14 @@ void ofApp::setup()
 {
 	ofSetFrameRate(60);
 
+	std::cout << glGetString(GL_VERSION) << std::endl;
+
 #ifdef TARGET_OPENGLES
 	shader.load("shadersES2/shader");
 #else
 	if (ofIsGLProgrammableRenderer())
 	{
-		shader.load("shadersGL3/shader");
+		shader.load("shadersParametricLavaGL3/shader");
 	}
 	else
 	{
@@ -28,8 +30,15 @@ void ofApp::setup()
 	plane.set(planeWidth, planeHeight, planeColums, planeRows, ofPrimitiveMode::OF_PRIMITIVE_TRIANGLE_STRIP); // plane
 	plane.mapTexCoords(0, 0, planeWidth, planeHeight);
 	uvsphere.setRadius(100); // uv sphere
+	
+	// https://forum.openframeworks.cc/t/image-tiling-repeating-textures/13605/5
+	//ofDisableArbTex();
+	fireImage.loadImage("fire1.jpg");
+	fireTexture = fireImage.getTextureReference();
+	fireTexture.setTextureWrap(GL_REPEAT, GL_REPEAT);
 
-	texture.loadImage("fire1.jpg");
+	rampImage.loadImage("ramp_texture.png");
+	rampTexture = rampImage.getTexture();
 }
 
 //--------------------------------------------------------------
@@ -43,7 +52,8 @@ void ofApp::draw()
 {
 	// bind our texture. in our shader this will now be tex0 by default
 	// so we can just go ahead and access it there.
-	texture.getTextureReference().bind();
+	//texture.getTextureReference().bind();
+	//rampTexture.getTextureReference().bind(1);
 
 	// start our shader, in our OpenGL3 shader this will automagically set
 	// up a lot of matrices that we want for figuring out the texture matrix
@@ -60,26 +70,27 @@ void ofApp::draw()
 #endif
 
 	shader.setUniform1f("mouseX", mousePosition);
-	//shader.setUniform1f("time", ofGetElapsedTimef());
-
-
-
-	/*
-	float percentY = mouseY / (float)ofGetHeight();
-	float rotation = ofMap(percentY, 0, 1, -60, 60, true) + 60;
-	ofRotate(rotation, 1, 0, 0);*/
-
+	shader.setUniform1f("time", ofGetElapsedTimef());
+	shader.setUniformTexture("tex0", fireTexture, 0);
+	shader.setUniformTexture("tex1", rampTexture, 1);
 	ofPushMatrix();
+
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2); // center plane in screen
+	float percentY = mouseY / (float)ofGetHeight(); // rotate
+	float rotation = ofMap(percentY, 0, 1, -60, 60, true) + 60;
+	ofRotate(rotation, 1, 0, 0);
+
 	plane.draw();
 	plane.drawAxes(100);
+
 	ofPopMatrix();
 
 	//uvsphere.drawWireframe();
 
 	shader.end();
 
-	texture.getTextureReference().unbind();
+	//texture.getTextureReference().unbind();
+	//rampTexture.getTextureReference().bind(1);
 }
 
 //--------------------------------------------------------------
