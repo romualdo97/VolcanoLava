@@ -28,11 +28,12 @@ void ofApp::setup()
 	int planeRows = planeHeight / planeGridSize;
 
 	plane.set(planeWidth, planeHeight, planeColums, planeRows, ofPrimitiveMode::OF_PRIMITIVE_TRIANGLE_STRIP); // plane
-	plane.mapTexCoords(0, 0, planeWidth, planeHeight);
+	// plane.mapTexCoords(0, 0, planeWidth, planeHeight);
+	plane.mapTexCoords(0, 0, 1, 1);
 	uvsphere.setRadius(100); // uv sphere
 	
 	// https://forum.openframeworks.cc/t/image-tiling-repeating-textures/13605/5
-	//ofDisableArbTex();
+	ofDisableArbTex();
 	fireImage.loadImage("fire1.jpg");
 	fireTexture = fireImage.getTextureReference();
 	fireTexture.setTextureWrap(GL_REPEAT, GL_REPEAT);
@@ -61,7 +62,11 @@ void ofApp::draw()
 	shader.begin();
 
 	// get mouse position relative to center of screen
-	float mousePosition = ofMap(mouseX, 0, ofGetWidth(), 1.0, -1.0, true);
+	float mousePosition = ofMap(mouseX, 0, ofGetWidth(), 0.0, 1.0, true);
+	//mousePosition = ofMap(mouseX, 0, ofGetWidth(), 0, 1, true);
+	//ofLogNotice() << "mousePosition: " << mousePosition;
+	shader.setUniform1f("mouseX", mousePosition);
+
 #ifndef TARGET_OPENGLES
 	// when texture coordinates are normalised, they are always between 0 and 1.
 	// in GL2 and GL3 the texture coordinates are not normalised,
@@ -69,7 +74,7 @@ void ofApp::draw()
 	mousePosition *= plane.getWidth();
 #endif
 
-	shader.setUniform1f("mouseX", mousePosition);
+	
 	shader.setUniform1f("time", ofGetElapsedTimef());
 	shader.setUniformTexture("tex0", fireTexture, 0);
 	shader.setUniformTexture("tex1", rampTexture, 1);

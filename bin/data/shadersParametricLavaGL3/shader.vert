@@ -98,8 +98,8 @@ uniform float mouseX;
 uniform float time;
 // wave 1
 float uAmplitude = 3.0;
-float uSpeed = 0.8;
-vec2 uDirection = vec2(-1.0, 0.0);
+float uSpeed = 0.2;
+vec2 uDirection = vec2(-1.0, -1.0);
 float uFreq = 1.0 / 3.0;
 
 // VERTEX ATTRIBUTES
@@ -111,6 +111,7 @@ in vec2 texcoord;
 // this is something we're creating for this shader
 out vec2 vTexCoord;
 out float vNoise;
+out float vNoise2;
 out vec3 vNormal;
 
 // noise perturbation approach
@@ -151,10 +152,12 @@ float dWdy(vec2 direction, float amplitude, float speed, float w)
 void main()
 {
     // pass the texture coordinates to fragment shader
-    vTexCoord = vec2( texcoord.x + uDirection.x * time * 4.5, texcoord.y);
+    vTexCoord = vec2( texcoord.x + uDirection.x * time * uSpeed * 0.02, 
+                texcoord.y + uDirection.y * time * uSpeed * 0.02);
 
     //noiseVarying = 10.0 *  -.10 * turbulence( .5 * normal + time * .1 ); // <= use for spheres
 	vNoise = 10.0 *  -.10 * turbulence( vec3(.5 * texcoord.xy + time*.04, 0.0) ); // <= use for planes
+    vNoise2 = turbulence(vec3(vTexCoord.xy*0.1, 0.0));
 
     // displacement
     float displacement = 0.0;
@@ -165,9 +168,20 @@ void main()
     displacement = (- 10. * vNoise + b) * 1.5;
 #else
     float W1 = wave(uDirection, uAmplitude, uSpeed, uFreq);
-    float H = W1;
-    float dHdx = dWdx(uDirection, uAmplitude, uSpeed, uFreq);
-    float dHdy = dWdy(uDirection, uAmplitude, uSpeed, uFreq);
+
+    float W2 = wave(uDirection + vec2(0.5), uAmplitude * 0.8, uSpeed * 0.7, uFreq * 0.5);
+    float W3 = wave(uDirection + vec2(-0.5), uAmplitude * 1.1, uSpeed * 0.7, uFreq * 0.5);
+    float H = W1 + W2 + W3;
+
+    // The derivate of sums is the sum of the derivates
+    float dHdx = dWdx(uDirection, uAmplitude, uSpeed, uFreq); // partial derivate of W1 in x direction
+    dHdx += dWdx(uDirection + vec2(0.5), uAmplitude * 0.5, uSpeed * 0.8, uFreq * 0.5); // partial derivate of W2 in x direction
+    dHdx += dWdx(uDirection + vec2(-0.5), uAmplitude * 1.1, uSpeed * 0.1, uFreq * 0.5); // partial derivate of W3 in x direction
+
+    float dHdy = dWdy(uDirection, uAmplitude, uSpeed, uFreq); // partial derivate of W1 in y direction
+    dHdy += dWdy(uDirection + vec2(0.5), uAmplitude * 0.5, uSpeed * 0.8, uFreq * 0.5); // partial derivate of W2 in y direction
+    dHdy += dWdy(uDirection + vec2(-0.5), uAmplitude * 1.5, uSpeed * 0.1, uFreq * 0.5); // partial derivate of W3 in y direction
+
     vec3 N_x_y = normalize(vec3(-dHdx, -dHdy, 1)); // N(x, y); surface normal at any given point
     vNormal = N_x_y;
     displacement = H;
