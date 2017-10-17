@@ -19,7 +19,7 @@ void ofApp::setup()
 		shader.load("shadersGL2/shader");
 	}
 #endif // TARGET_OPENGLES
-
+	
 	float planeScale = 0.75;
 	int planeWidth = ofGetWidth() * planeScale;
 	int planeHeight = ofGetHeight() * planeScale;
@@ -38,15 +38,22 @@ void ofApp::setup()
 	fireTexture = fireImage.getTextureReference();
 	fireTexture.setTextureWrap(GL_REPEAT, GL_REPEAT);
 
-	rampImage.loadImage("FlowMap.png");
+	rampImage.loadImage("FlowDebug_2.png");
 	rampTexture = rampImage.getTexture();
 
 	flowMapOffset0 = 0.0f;
 	flowMapOffset1 = halfCycle;
+	if (shader.isLoaded())
+	{
+		printf("Shader loaded");
+		shader.begin();
+		shader.setUniform1f("halfCycle", halfCycle);
+		shader.setUniformTexture("tex0", rampTexture, 0);
+		shader.setUniformTexture("tex1", fireTexture, 1);
+		shader.setUniformTexture("tex2", fireTexture, 2);
+		shader.end();
+	}
 
-	shader.setUniform1f("halfCycle", halfCycle);
-	shader.setUniformTexture("tex0", fireTexture, 0);
-	shader.setUniformTexture("tex1", rampTexture, 1);
 }
 
 //--------------------------------------------------------------
@@ -66,6 +73,8 @@ void ofApp::draw()
 	// start our shader, in our OpenGL3 shader this will automagically set
 	// up a lot of matrices that we want for figuring out the texture matrix
 	// and the modelView matrix
+
+
 	shader.begin();
 
 	// get mouse position relative to center of screen
@@ -80,16 +89,16 @@ void ofApp::draw()
 	// so we have to multiply the normalised mouse position by the plane width.
 	mousePosition *= plane.getWidth();
 #endif
-
 		
 	shader.setUniform1f("time", ofGetElapsedTimef());
 
-	flowMapOffset0 += ofGetElapsedTimef() * flowSpeed;
-	flowMapOffset1 += ofGetElapsedTimef() * flowSpeed;
+	flowMapOffset0 += flowSpeed;
+	flowMapOffset1 += flowSpeed;
 	if (flowMapOffset0 >= cycle) flowMapOffset0 = 0.0f;
 	if (flowMapOffset1 >= cycle) flowMapOffset1 = 0.0f;
 
 	shader.setUniform1f("flowMapOffset0", flowMapOffset0);
+	shader.setUniform1f("flowMapOffset1", flowMapOffset1);
 
 	ofPushMatrix();
 

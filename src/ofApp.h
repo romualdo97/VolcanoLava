@@ -33,6 +33,6 @@ class ofApp : public ofBaseApp{
 		float flowMapOffset1;
 		float const cycle = 0.08f;
 		float const halfCycle = cycle * 0.5f;
-		float const flowSpeed = 0.001f;
+		float const flowSpeed = 0.0005f;
 		
 };
