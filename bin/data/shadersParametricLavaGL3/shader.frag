@@ -49,5 +49,5 @@ void main()
     outputColor = mix(vec4(color*vec3(1.0, 0.6, 0.6), 1.0), 
     				  vec4(color*vec3(1.8, 1.0, 1.0), 1.0), 
     				  max(0.0, min(mouseX, 1.0)));
-    outputColor= texel;
+    outputColor = vec4(texel, 1.0);
 }

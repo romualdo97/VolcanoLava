@@ -12,7 +12,7 @@ void ofApp::setup()
 #else
 	if (ofIsGLProgrammableRenderer())
 	{
-		shader.load("shadersParametricLavaGL3/shader");
+		shader.load("shadersFlowFieldGL3/shader");
 	}
 	else
 	{
@@ -38,7 +38,7 @@ void ofApp::setup()
 	fireTexture = fireImage.getTextureReference();
 	fireTexture.setTextureWrap(GL_REPEAT, GL_REPEAT);
 
-	rampImage.loadImage("ramp_texture.png");
+	rampImage.loadImage("FlowMap.png");
 	rampTexture = rampImage.getTexture();
 }
 
