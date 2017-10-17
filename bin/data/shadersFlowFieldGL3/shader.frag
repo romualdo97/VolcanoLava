@@ -40,7 +40,7 @@ void main()
     float mixFactor = (abs(halfCycle - flowMapOffset0) / halfCycle);
     color = mix(texelA, texelB, mixFactor);
 #ifdef DEBUG_MODE
-	outputColor = mix(color, flowMapTexel, 0.3);
+	outputColor = mix(color, flowMapTexel, 0.4);
 #else
     outputColor = color;
 #endif
