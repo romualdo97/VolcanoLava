@@ -40,6 +40,13 @@ void ofApp::setup()
 
 	rampImage.loadImage("FlowMap.png");
 	rampTexture = rampImage.getTexture();
+
+	flowMapOffset0 = 0.0f;
+	flowMapOffset1 = halfCycle;
+
+	shader.setUniform1f("halfCycle", halfCycle);
+	shader.setUniformTexture("tex0", fireTexture, 0);
+	shader.setUniformTexture("tex1", rampTexture, 1);
 }
 
 //--------------------------------------------------------------
@@ -74,10 +81,16 @@ void ofApp::draw()
 	mousePosition *= plane.getWidth();
 #endif
 
-	
+		
 	shader.setUniform1f("time", ofGetElapsedTimef());
-	shader.setUniformTexture("tex0", fireTexture, 0);
-	shader.setUniformTexture("tex1", rampTexture, 1);
+
+	flowMapOffset0 += ofGetElapsedTimef() * flowSpeed;
+	flowMapOffset1 += ofGetElapsedTimef() * flowSpeed;
+	if (flowMapOffset0 >= cycle) flowMapOffset0 = 0.0f;
+	if (flowMapOffset1 >= cycle) flowMapOffset1 = 0.0f;
+
+	shader.setUniform1f("flowMapOffset0", flowMapOffset0);
+
 	ofPushMatrix();
 
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2); // center plane in screen
