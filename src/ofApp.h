@@ -31,7 +31,7 @@ class ofApp : public ofBaseApp{
 		ofTexture rampTexture;
 		float flowMapOffset0;
 		float flowMapOffset1;
-		float const cycle = 0.08f;
+		float const cycle = 0.2f;
 		float const halfCycle = cycle * 0.5f;
 		float const flowSpeed = 0.0005f;
 		
