@@ -4,7 +4,7 @@
 #define DEBUG_MODE
 
 // UNIFORMS
-uniform sampler2D tex0;	// explosion
+uniform sampler2D tex0;	// flow field
 uniform sampler2D tex1; // fire texture
 uniform sampler2D tex2; // fire texture
 uniform float time;
@@ -32,7 +32,7 @@ void main()
 	vec4 color = vec4( 1.0, 0.0, 0.0, 1.0 );
 
 	vec4 flowMapTexel = texture(tex0, vTexCoord);
-    vec2 flowDir = unpackFlowVector(flowMapTexel.xy);
+    vec2 flowDir = unpackFlowVector(flowMapTexel.rg);
 	
     vec4 texelA = texture(tex1, vTexCoord + flowDir * flowMapOffset0); // texture2D is deprecated since version 1.30
     vec4 texelB = texture(tex2, vTexCoord + flowDir * flowMapOffset1);
